@@ -1,0 +1,258 @@
+COMMON FEATURE SCALING MISTAKES
+===============================
+
+This file documents frequent mistakes people make when applying feature scaling
+and how to avoid them. Learn from these common pitfalls!
+
+1. DATA LEAKAGE MISTAKES
+------------------------
+
+❌ MISTAKE: Scaling the entire dataset before train/test split
+```python
+# WRONG - This causes data leakage!
+X_scaled = StandardScaler().fit_transform(X)
+X_train, X_test = train_test_split(X_scaled, y)
+```
+
+✅ CORRECT: Fit scaler only on training data, then transform both
+```python
+# CORRECT - No data leakage
+X_train, X_test = train_test_split(X, y)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)  # Only transform, don't fit!
+```
+
+WHY: The test set statistics should never influence the scaling parameters.
+
+
+2. FORGETTING TO SCALE NEW DATA
+-------------------------------
+
+❌ MISTAKE: Not applying the same scaling to new prediction data
+```python
+# Training
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+model.fit(X_train_scaled, y_train)
+
+# WRONG - Forgetting to scale new data
+prediction = model.predict(new_data)  # new_data is not scaled!
+```
+
+✅ CORRECT: Always scale new data with the same scaler
+```python
+# CORRECT - Scale new data with same scaler
+new_data_scaled = scaler.transform(new_data)
+prediction = model.predict(new_data_scaled)
+```
+
+WHY: The model expects scaled input, just like it was trained on.
+
+
+3. SCALING CATEGORICAL VARIABLES
+--------------------------------
+
+❌ MISTAKE: Applying numerical scaling to categorical variables
+```python
+# WRONG - Don't scale categorical features!
+# If 'color' column has values [0=red, 1=blue, 2=green]
+# Scaling makes no sense - there's no meaningful order
+scaled_data = StandardScaler().fit_transform(data)  # Includes categorical cols
+```
+
+✅ CORRECT: Only scale numerical features
+```python
+# CORRECT - Separate numerical and categorical features
+numerical_features = ['age', 'income', 'score']
+categorical_features = ['color', 'city', 'category']
+
+scaler = StandardScaler()
+data[numerical_features] = scaler.fit_transform(data[numerical_features])
+# Leave categorical features unchanged
+```
+
+WHY: Categorical variables represent discrete categories, not continuous values.
+
+
+4. WRONG SCALER FOR THE ALGORITHM
+---------------------------------
+
+❌ MISTAKE: Using the wrong scaler for your algorithm's requirements
+```python
+# WRONG - Using StandardScaler when algorithm needs [0,1] range
+# Neural networks with sigmoid activation often prefer [0,1] input
+scaler = StandardScaler()  # Produces values with negative numbers
+```
+
+✅ CORRECT: Choose scaler based on algorithm requirements
+```python
+# CORRECT - MinMaxScaler for algorithms preferring [0,1] range
+scaler = MinMaxScaler()  # Produces values in [0,1] range
+```
+
+ALGORITHM PREFERENCES:
+- Neural Networks (sigmoid/tanh): MinMaxScaler or StandardScaler
+- SVM, KNN, K-Means: StandardScaler or RobustScaler
+- Tree-based models: Often no scaling needed
+- Linear models: StandardScaler
+
+
+5. NOT HANDLING OUTLIERS PROPERLY
+---------------------------------
+
+❌ MISTAKE: Using StandardScaler or MinMaxScaler with heavy outliers
+```python
+# WRONG - StandardScaler sensitive to outliers
+# If data has extreme outliers, StandardScaler gets skewed
+scaler = StandardScaler()  # Mean and std affected by outliers
+```
+
+✅ CORRECT: Use RobustScaler for data with outliers
+```python
+# CORRECT - RobustScaler uses median and IQR (less sensitive to outliers)
+scaler = RobustScaler()  # Uses median and quartiles instead of mean/std
+```
+
+WHY: Outliers heavily influence mean and standard deviation calculations.
+
+
+6. SCALING TARGET VARIABLES INCORRECTLY
+---------------------------------------
+
+❌ MISTAKE: Scaling classification targets or forgetting to inverse transform
+```python
+# WRONG - Don't scale classification targets (0, 1, 2, ...)
+y_scaled = StandardScaler().fit_transform(y.reshape(-1, 1))  # Wrong for classification!
+
+# WRONG - Forgetting to inverse transform regression targets
+y_pred_scaled = model.predict(X_test)
+# Forgot to inverse transform y_pred_scaled back to original scale!
+```
+
+✅ CORRECT: Only scale regression targets, and inverse transform predictions
+```python
+# For REGRESSION only:
+y_scaler = StandardScaler()
+y_train_scaled = y_scaler.fit_transform(y_train.reshape(-1, 1))
+model.fit(X_train_scaled, y_train_scaled.ravel())
+
+# Predict and inverse transform
+y_pred_scaled = model.predict(X_test_scaled)
+y_pred = y_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1))
+```
+
+WHY: Classification targets are discrete labels, not continuous values.
+
+
+7. INCONSISTENT SCALING IN PIPELINES
+------------------------------------
+
+❌ MISTAKE: Manual scaling leading to inconsistencies
+```python
+# WRONG - Prone to errors and inconsistencies
+X_train_scaled = StandardScaler().fit_transform(X_train)
+model.fit(X_train_scaled, y_train)
+# Later... might forget exact scaling steps or parameters
+```
+
+✅ CORRECT: Use sklearn Pipeline for consistency
+```python
+# CORRECT - Pipeline ensures consistent scaling
+from sklearn.pipeline import Pipeline
+
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', SVC())
+])
+pipeline.fit(X_train, y_train)
+predictions = pipeline.predict(X_test)  # Scaling handled automatically
+```
+
+WHY: Pipelines prevent scaling inconsistencies and make code more maintainable.
+
+
+8. SCALING WHEN NOT NEEDED
+--------------------------
+
+❌ MISTAKE: Always scaling regardless of algorithm
+```python
+# WRONG - Tree-based models don't usually need scaling
+X_scaled = StandardScaler().fit_transform(X)
+model = RandomForestClassifier()  # Trees are scale-invariant!
+model.fit(X_scaled, y)  # Unnecessary computational overhead
+```
+
+✅ CORRECT: Know when scaling is needed
+```python
+# CORRECT - No scaling needed for tree-based models
+model = RandomForestClassifier()
+model.fit(X, y)  # Use original data
+
+# Scale only for distance/gradient-based algorithms
+model = SVC()
+pipeline = Pipeline([('scaler', StandardScaler()), ('svm', model)])
+```
+
+SCALING NEEDED: SVM, KNN, Neural Networks, Linear Models, K-Means
+SCALING NOT NEEDED: Random Forest, Decision Trees, Gradient Boosting Trees
+
+
+9. SPARSE DATA SCALING MISTAKES
+-------------------------------
+
+❌ MISTAKE: Using dense scalers on sparse data
+```python
+# WRONG - This destroys sparsity!
+sparse_data = csr_matrix(...)  # Sparse matrix
+dense_scaled = StandardScaler().fit_transform(sparse_data)  # Now dense!
+```
+
+✅ CORRECT: Use sparse-compatible scaling or preserve sparsity
+```python
+# CORRECT - Use MaxAbsScaler (preserves sparsity)
+sparse_scaled = MaxAbsScaler().fit_transform(sparse_data)  # Stays sparse
+
+# Or use with_mean=False for other scalers
+scaler = StandardScaler(with_mean=False)  # Preserves sparsity
+```
+
+WHY: Converting sparse to dense can cause memory issues with large datasets.
+
+
+10. CROSS-VALIDATION SCALING ERRORS
+-----------------------------------
+
+❌ MISTAKE: Scaling before cross-validation
+```python
+# WRONG - This causes data leakage in CV!
+X_scaled = StandardScaler().fit_transform(X)
+cv_scores = cross_val_score(model, X_scaled, y, cv=5)  # Leakage!
+```
+
+✅ CORRECT: Include scaling in cross-validation pipeline
+```python
+# CORRECT - Scaling happens inside each CV fold
+pipeline = Pipeline([('scaler', StandardScaler()), ('model', SVC())])
+cv_scores = cross_val_score(pipeline, X, y, cv=5)  # No leakage!
+```
+
+WHY: Each CV fold should be independent; test folds shouldn't influence scaling.
+
+
+QUICK REFERENCE CHECKLIST:
+==========================
+□ Fit scaler only on training data
+□ Transform (don't fit) test and new data
+□ Don't scale categorical variables
+□ Choose appropriate scaler for your algorithm
+□ Use RobustScaler for data with outliers
+□ Don't scale classification targets
+□ Use Pipeline for consistency
+□ Know when scaling is/isn't needed
+□ Preserve sparsity when possible
+□ Include scaling in cross-validation pipeline
+□ Inverse transform regression predictions if target was scaled
+
+Remember: Feature scaling is a tool, not a rule. Understand your data and 
+algorithm requirements to make the right choice!
