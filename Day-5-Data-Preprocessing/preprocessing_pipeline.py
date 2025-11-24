@@ -83,7 +83,7 @@ def build_preprocessing_pipeline(
     - numeric: SimpleImputer(strategy='median') -> StandardScaler()
       (median is robust to outliers; scaling needed for many models / PCA)
     - categorical: SimpleImputer(strategy='constant', fill_value='missing')
-                   -> OneHotEncoder(handle_unknown='ignore', sparse=False)
+                   -> OneHotEncoder(handle_unknown='ignore', sparse_output=False)
     Explanation:
     - We impute categorical missing values with a dedicated token ('missing') so that
       they become a valid category during encoding.
@@ -166,10 +166,11 @@ def example_pipeline_run():
     preprocessor = build_preprocessing_pipeline(numeric_features, categorical_features)
 
     # Build a full pipeline with an estimator
+    # Using liblinear solver for simplicity with small dataset; adjust as needed for larger datasets
     clf = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("classifier", LogisticRegression(solver="liblinear")),
+            ("classifier", LogisticRegression(solver="liblinear", max_iter=1000)),
         ]
     )
 

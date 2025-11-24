@@ -1,6 +1,6 @@
 # Day 5 — Data Preprocessing & Feature Engineering
 
-This folder contains learning materials and runnable examples for core preprocessing and feature engineering steps you need after feature scaling:
+This folder contains learning materials and runnable examples for core preprocessing and feature engineering steps including feature scaling:
 
 Learning goals
 - Understand handling missing values and best practices.
