@@ -1,0 +1,296 @@
+"""
+Day 6 — Random Forest Ensemble
+-------------------------------
+
+This file demonstrates:
+- How Random Forests work
+- Comparing single tree vs Random Forest
+- Understanding bootstrap sampling and feature randomness
+- Hyperparameter tuning (n_estimators, max_features)
+
+Run:
+    python Day-6-Decision-Trees-Random-Forests/random_forest_ensemble. py
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification, load_breast_cancer
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, cross_val_score, learning_curve
+
+
+def single_tree_vs_forest():
+    """
+    Compare single decision tree vs Random Forest performance.
+    """
+    print("="*60)
+    print("Single Decision Tree vs Random Forest")
+    print("="*60)
+    
+    X, y = make_classification(
+        n_samples=1000,
+        n_features=20,
+        n_informative=15,
+        n_redundant=5,
+        random_state=42
+    )
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
+    
+    # Single decision tree
+    tree = DecisionTreeClassifier(random_state=42)
+    tree. fit(X_train, y_train)
+    
+    tree_train_score = tree.score(X_train, y_train)
+    tree_test_score = tree.score(X_test, y_test)
+    
+    print("\nSingle Decision Tree:")
+    print(f"  Train accuracy: {tree_train_score:.4f}")
+    print(f"  Test accuracy:  {tree_test_score:.4f}")
+    print(f"  Overfitting gap: {tree_train_score - tree_test_score:.4f}")
+    
+    # Random Forest
+    forest = RandomForestClassifier(n_estimators=100, random_state=42)
+    forest. fit(X_train, y_train)
+    
+    forest_train_score = forest.score(X_train, y_train)
+    forest_test_score = forest.score(X_test, y_test)
+    
+    print("\nRandom Forest (100 trees):")
+    print(f"  Train accuracy: {forest_train_score:.4f}")
+    print(f"  Test accuracy:  {forest_test_score:.4f}")
+    print(f"  Overfitting gap: {forest_train_score - forest_test_score:. 4f}")
+    
+    print("\n📊 Key Insight:")
+    print("  Random Forest reduces overfitting and improves test accuracy")
+    print("  by averaging predictions from multiple diverse trees.")
+
+
+def demonstrate_bootstrap_sampling():
+    """
+    Show how bootstrap sampling creates diverse training sets.
+    """
+    print("\n" + "="*60)
+    print("Bootstrap Sampling in Random Forests")
+    print("="*60)
+    
+    print("\nRandom Forest uses bootstrap sampling:")
+    print("- Each tree is trained on a random sample (with replacement)")
+    print("- Each sample has ~63. 2% of original data (some duplicates)")
+    print("- Out-of-bag (OOB) samples (~36. 8%) can be used for validation")
+    
+    # Example: show OOB score
+    X, y = make_classification(
+        n_samples=500, n_features=15, n_informative=10, random_state=42
+    )
+    
+    forest = RandomForestClassifier(
+        n_estimators=100,
+        oob_score=True,
+        random_state=42
+    )
+    forest.fit(X, y)
+    
+    print(f"\nOOB Score: {forest.oob_score_:.4f}")
+    print("(OOB score is computed using samples not used in each tree's training)")
+    
+    # Show overlap between bootstrap samples
+    n_samples = 100
+    rng = np.random.RandomState(42)
+    
+    sample1 = rng.choice(n_samples, size=n_samples, replace=True)
+    sample2 = rng.choice(n_samples, size=n_samples, replace=True)
+    
+    unique1 = len(set(sample1))
+    unique2 = len(set(sample2))
+    overlap = len(set(sample1) & set(sample2))
+    
+    print(f"\nExample of 2 bootstrap samples (n={n_samples}):")
+    print(f"  Sample 1 unique indices: {unique1}/{n_samples} ({unique1/n_samples*100:.1f}%)")
+    print(f"  Sample 2 unique indices: {unique2}/{n_samples} ({unique2/n_samples*100:.1f}%)")
+    print(f"  Overlap: {overlap} indices")
+    print("\n→ Each tree sees a different subset of data, creating diversity")
+
+
+def feature_randomness_effect():
+    """
+    Demonstrate the effect of max_features parameter.
+    
+    max_features controls how many features each split considers:
+    - 'sqrt': sqrt(n_features) — good for classification
+    - 'log2': log2(n_features)
+    - int: specific number
+    - None: all features (less diversity)
+    """
+    print("\n" + "="*60)
+    print("Feature Randomness (max_features)")
+    print("="*60)
+    
+    X, y = make_classification(
+        n_samples=1000,
+        n_features=20,
+        n_informative=15,
+        random_state=42
+    )
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
+    
+    max_features_options = ['sqrt', 'log2', None, 5, 10]
+    
+    print("\nComparing different max_features values:")
+    results = []
+    
+    for max_feat in max_features_options:
+        forest = RandomForestClassifier(
+            n_estimators=100,
+            max_features=max_feat,
+            random_state=42
+        )
+        scores = cross_val_score(forest, X_train, y_train, cv=5)
+        mean_score = scores.mean()
+        results.append((max_feat, mean_score))
+        print(f"  max_features={str(max_feat):6s} → CV Accuracy: {mean_score:.4f}")
+    
+    print("\n📊 Key Insight:")
+    print("  - 'sqrt' (default for classification): Good balance of diversity and performance")
+    print("  - Fewer features per split → More diversity, less overfitting")
+    print("  - None (all features) → Less diversity, higher variance")
+
+
+def number_of_trees_effect():
+    """
+    Show how number of trees (n_estimators) affects performance. 
+    """
+    print("\n" + "="*60)
+    print("Effect of Number of Trees (n_estimators)")
+    print("="*60)
+    
+    X, y = load_breast_cancer(return_X_y=True)
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42
+    )
+    
+    n_estimators_range = [1, 5, 10, 25, 50, 100, 200, 500]
+    train_scores = []
+    test_scores = []
+    
+    print("\nTesting different numbers of trees:")
+    for n_est in n_estimators_range:
+        forest = RandomForestClassifier(n_estimators=n_est, random_state=42)
+        forest.fit(X_train, y_train)
+        
+        train_score = forest.score(X_train, y_train)
+        test_score = forest.score(X_test, y_test)
+        
+        train_scores.append(train_score)
+        test_scores.append(test_score)
+        
+        print(f"  n_estimators={n_est:3d} → Train: {train_score:. 4f}, Test: {test_score:.4f}")
+    
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(n_estimators_range, train_scores, marker='o', label='Train', alpha=0.7)
+    plt.plot(n_estimators_range, test_scores, marker='s', label='Test', alpha=0.7)
+    plt. xlabel('Number of Trees (n_estimators)')
+    plt.ylabel('Accuracy')
+    plt. title('Random Forest Performance vs Number of Trees')
+    plt. legend()
+    plt.grid(alpha=0.3)
+    plt.xscale('log')
+    plt.tight_layout()
+    
+    output_path = "Day-6-Decision-Trees-Random-Forests/n_estimators_effect.png"
+    plt.savefig(output_path, dpi=100)
+    print(f"\nSaved plot: {output_path}")
+    plt.close()
+    
+    print("\n📊 Key Insight:")
+    print("  - More trees → Better performance (up to a point)")
+    print("  - Performance plateaus after ~100-200 trees")
+    print("  - More trees = more computation time")
+    print("  - Rule of thumb: Start with 100 trees, increase if needed")
+
+
+def visualize_decision_boundary_forest():
+    """
+    Compare decision boundaries: single tree vs Random Forest.
+    """
+    print("\n" + "="*60)
+    print("Decision Boundary: Single Tree vs Random Forest")
+    print("="*60)
+    
+    X, y = make_classification(
+        n_samples=300,
+        n_features=2,
+        n_informative=2,
+        n_redundant=0,
+        n_clusters_per_class=1,
+        random_state=42
+    )
+    
+    tree = DecisionTreeClassifier(max_depth=5, random_state=42)
+    forest = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+    
+    tree.fit(X, y)
+    forest.fit(X, y)
+    
+    h = 0.02
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1]. min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    
+    # Single tree
+    Z_tree = tree.predict(np.c_[xx.ravel(), yy.ravel()]). reshape(xx.shape)
+    axes[0].contourf(xx, yy, Z_tree, alpha=0.3, cmap='RdYlBu')
+    axes[0].scatter(X[:, 0], X[:, 1], c=y, s=30, edgecolors='k', cmap='RdYlBu')
+    axes[0].set_title('Single Decision Tree', fontsize=14)
+    axes[0].set_xlabel('Feature 1')
+    axes[0].set_ylabel('Feature 2')
+    
+    # Random Forest
+    Z_forest = forest.predict(np. c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+    axes[1].contourf(xx, yy, Z_forest, alpha=0.3, cmap='RdYlBu')
+    axes[1].scatter(X[:, 0], X[:, 1], c=y, s=30, edgecolors='k', cmap='RdYlBu')
+    axes[1].set_title('Random Forest (100 trees)', fontsize=14)
+    axes[1].set_xlabel('Feature 1')
+    axes[1].set_ylabel('Feature 2')
+    
+    plt.suptitle('Decision Boundaries Comparison', fontsize=16)
+    plt.tight_layout()
+    
+    output_path = "Day-6-Decision-Trees-Random-Forests/forest_vs_tree_boundary.png"
+    plt. savefig(output_path, dpi=100)
+    print(f"\nSaved decision boundary comparison: {output_path}")
+    plt.close()
+    
+    print("\n📊 Observation:")
+    print("  - Single tree: Sharp, axis-aligned boundaries")
+    print("  - Random Forest: Smoother boundaries (averaged over many trees)")
+
+
+def main():
+    """
+    Run all Random Forest examples.
+    """
+    single_tree_vs_forest()
+    demonstrate_bootstrap_sampling()
+    feature_randomness_effect()
+    number_of_trees_effect()
+    visualize_decision_boundary_forest()
+    
+    print("\n" + "="*60)
+    print("Random Forest Ensemble — Complete!")
+    print("="*60)
+    print("\nNext: Run feature_importance_analysis.py to interpret your models.")
+
+
+if __name__ == "__main__":
+    main()
