@@ -1,0 +1,316 @@
+Common Mistakes in Data Preprocessing & Feature Engineering
+============================================================
+
+This file lists frequent pitfalls learners encounter when preprocessing data and engineering features, along with explanations and how to avoid them.
+
+---
+
+1. DATA LEAKAGE: Fitting preprocessing on the entire dataset before train-test split
+------------------------------------------------------------------------------------
+
+MISTAKE:
+    scaler = StandardScaler()
+    X_scaled = scaler.fit(X)  # Fit on entire dataset
+    X_train, X_test = train_test_split(X_scaled, y)
+
+WHY IT'S WRONG:
+    The scaler "sees" the test set during fit(), so test statistics (mean, std) leak into training.
+    This gives an overly optimistic performance estimate.
+
+CORRECT APPROACH:
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    scaler = StandardScaler()
+    X_train_scaled = scaler. fit_transform(X_train)  # Fit only on train
+    X_test_scaled = scaler.transform(X_test)        # Transform test with train stats
+
+BEST PRACTICE:
+    Use sklearn Pipeline so preprocessing is always safely applied inside cross-validation folds. 
+
+---
+
+2. DATA LEAKAGE: Imputing missing values using global statistics before split
+------------------------------------------------------------------------------
+
+MISTAKE:
+    imputer = SimpleImputer(strategy='mean')
+    X_imputed = imputer.fit_transform(X)  # Fit on full dataset
+    X_train, X_test = train_test_split(X_imputed, y)
+
+WHY IT'S WRONG:
+    The mean (or median) is computed from the entire dataset, including test samples.
+    Test set information leaks into training preprocessing.
+
+CORRECT APPROACH:
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    imputer = SimpleImputer(strategy='mean')
+    X_train_imputed = imputer.fit_transform(X_train)
+    X_test_imputed = imputer.transform(X_test)
+
+---
+
+3. One-hot encoding without handling unknown categories in test set
+--------------------------------------------------------------------
+
+MISTAKE:
+    encoder = OneHotEncoder()
+    encoder.fit(X_train_cat)
+    X_test_encoded = encoder.transform(X_test_cat)  # Fails if new category appears
+
+WHY IT'S WRONG:
+    If test set contains a category not seen during training, encoder raises an error. 
+
+CORRECT APPROACH:
+    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder.fit(X_train_cat)
+    X_test_encoded = encoder.transform(X_test_cat)
+
+EXPLANATION:
+    handle_unknown='ignore' creates a zero vector for unknown categories, allowing safe transformation.
+
+---
+
+4. Using label encoding for nominal (non-ordinal) categorical features
+-----------------------------------------------------------------------
+
+MISTAKE:
+    Encoding ['red', 'green', 'blue'] as [0, 1, 2] and feeding to a model that assumes order (e.g., linear regression). 
+
+WHY IT'S WRONG:
+    Label encoding introduces a false ordinal relationship (0 < 1 < 2). 
+    The model might learn that "green" is somehow "between" red and blue, which is meaningless.
+
+CORRECT APPROACH:
+    Use one-hot encoding for nominal features (no inherent order).
+    Use label encoding (or ordinal encoding) only for ordinal features (e.g., "low", "medium", "high"). 
+
+---
+
+5. Applying PCA before scaling features
+----------------------------------------
+
+MISTAKE:
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X)  # X not scaled
+
+WHY IT'S WRONG:
+    PCA is sensitive to feature scales. Features with larger ranges dominate the principal components. 
+
+CORRECT APPROACH:
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X_scaled)
+
+---
+
+6. Dropping rows with missing values too aggressively
+-----------------------------------------------------
+
+MISTAKE:
+    df_cleaned = df.dropna()  # Drop any row with any missing value
+
+WHY IT'S PROBLEMATIC:
+    You may lose a large portion of your dataset.
+    If missing values are scattered across columns, you might drop most rows.
+
+BETTER APPROACH:
+    Analyze missingness pattern first:
+        - If a feature has >70% missing, consider dropping the feature (not rows). 
+        - For moderate missingness, use imputation strategies (mean, median, mode, or model-based).
+    Only drop rows if missingness is minimal or if specific rows are known to be corrupted.
+
+---
+
+7. Using the same imputation strategy for all features
+-------------------------------------------------------
+
+MISTAKE:
+    imputer = SimpleImputer(strategy='mean')
+    X_imputed = imputer.fit_transform(X)  # Applied to numeric and categorical together
+
+WHY IT'S WRONG:
+    Mean/median imputation is only appropriate for numeric features.
+    Categorical features should use mode (most_frequent) or a constant placeholder.
+
+CORRECT APPROACH:
+    Use ColumnTransformer to apply different imputation strategies to numeric vs categorical columns. 
+
+EXAMPLE:
+    numeric_transformer = Pipeline([
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())
+    ])
+    categorical_transformer = Pipeline([
+        ('imputer', SimpleImputer(strategy='most_frequent')),
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))
+    ])
+    preprocessor = ColumnTransformer([
+        ('num', numeric_transformer, numeric_features),
+        ('cat', categorical_transformer, categorical_features)
+    ])
+
+---
+
+8. Ignoring feature scaling when it matters (and vice versa)
+-------------------------------------------------------------
+
+MISTAKE A:
+    Not scaling features before using distance-based algorithms (KNN, SVM, K-means).
+
+WHY IT'S WRONG:
+    Features with larger ranges dominate distance calculations. 
+
+MISTAKE B:
+    Scaling features when using tree-based models (Random Forest, XGBoost) unnecessarily.
+
+WHY IT'S UNNECESSARY:
+    Tree-based models are invariant to monotonic transformations; scaling doesn't help (but doesn't hurt either).
+
+GUIDANCE:
+    - DO scale for: Linear models, SVM, KNN, neural networks, PCA, clustering. 
+    - DON'T need to scale for: Tree-based models (Random Forest, Gradient Boosting, Decision Trees).
+
+---
+
+9. Feature selection based on training set performance alone (overfitting feature selection)
+--------------------------------------------------------------------------------------------
+
+MISTAKE:
+    Select features that maximize training accuracy without cross-validation.
+
+WHY IT'S WRONG:
+    You might select features that overfit the training set and don't generalize. 
+
+CORRECT APPROACH:
+    Perform feature selection inside cross-validation loops (e.g., use Pipeline with SelectKBest).
+    Evaluate feature selection methods on validation/test performance.
+
+---
+
+10. Using correlated features without understanding multicollinearity
+----------------------------------------------------------------------
+
+MISTAKE:
+    Including many highly correlated features in a linear regression model.
+
+WHY IT'S PROBLEMATIC:
+    Multicollinearity inflates coefficient variance and makes interpretation difficult.
+    Predictions may still work, but coefficients become unstable.
+
+CORRECT APPROACH:
+    - Identify and remove one of each pair of highly correlated features (correlation > 0.9).
+    - Alternatively, use regularization (Ridge, Lasso) which handles multicollinearity better.
+    - For tree models, multicollinearity is less of an issue. 
+
+---
+
+11. Performing feature engineering after splitting into train/test (not consistently)
+-------------------------------------------------------------------------------------
+
+MISTAKE:
+    Creating new features (e.g., log transform, interaction terms) on train set, but forgetting
+    to apply the exact same transformation to the test set.
+
+WHY IT'S WRONG:
+    Train and test sets must undergo identical transformations for valid evaluation.
+
+CORRECT APPROACH:
+    Define all feature engineering steps in a function or Pipeline, and apply it to both train and test. 
+
+EXAMPLE:
+    def engineer_features(df):
+        df['log_income'] = np.log1p(df['income'])
+        df['age_income_interaction'] = df['age'] * df['income']
+        return df
+
+    X_train_eng = engineer_features(X_train. copy())
+    X_test_eng = engineer_features(X_test.copy())
+
+---
+
+12. Not checking for data types and silent type conversions
+------------------------------------------------------------
+
+MISTAKE:
+    Assuming all numeric-looking columns are actually numeric; some might be strings or objects.
+
+WHY IT'S PROBLEMATIC:
+    Scalers and imputers expect numeric input and will fail or produce unexpected results.
+
+CORRECT APPROACH:
+    Check dtypes explicitly:
+        print(df.dtypes)
+    Convert types if necessary:
+        df['age'] = pd.to_numeric(df['age'], errors='coerce')
+
+---
+
+13. Using PCA components in linear models without understanding loss of interpretability
+----------------------------------------------------------------------------------------
+
+MISTAKE:
+    Running PCA to reduce features, then interpreting linear regression coefficients as feature importances.
+
+WHY IT'S WRONG:
+    PCA components are linear combinations of original features; coefficients of components don't directly
+    map back to original features in an interpretable way.
+
+CORRECT APPROACH:
+    If interpretability is important, avoid PCA or use feature selection methods that preserve original features. 
+    If dimensionality reduction is needed, accept the trade-off in interpretability.
+
+---
+
+14.  Ignoring class imbalance when splitting data
+-------------------------------------------------
+
+MISTAKE:
+    train_test_split(X, y) without stratification on an imbalanced classification problem.
+
+WHY IT'S WRONG:
+    Train or test set might end up with very few (or zero) samples of the minority class.
+
+CORRECT APPROACH:
+    Use stratify parameter:
+        train_test_split(X, y, stratify=y)
+    This ensures each split has approximately the same class distribution.
+
+---
+
+15. Cross-validation without using a Pipeline (leakage again)
+--------------------------------------------------------------
+
+MISTAKE:
+    X_scaled = scaler.fit_transform(X)
+    scores = cross_val_score(model, X_scaled, y, cv=5)
+
+WHY IT'S WRONG:
+    The scaler was fit on the entire dataset before cross-validation, so each fold's test set
+    was already "seen" during scaling.
+
+CORRECT APPROACH:
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('model', LogisticRegression())
+    ])
+    scores = cross_val_score(pipeline, X, y, cv=5)
+
+EXPLANATION:
+    Pipeline ensures that in each CV fold, the scaler is fit only on that fold's training data. 
+
+---
+
+SUMMARY CHECKLIST
+-----------------
+- Always split data BEFORE any fitting (scaling, imputation, encoding). 
+- Use sklearn Pipelines to prevent leakage.
+- Choose imputation and encoding strategies appropriate for feature types.
+- Scale features when required by the algorithm.
+- Use stratified splits for imbalanced data.
+- Apply feature engineering consistently to train and test. 
+- Check data types and handle missing values explicitly.
+- Be mindful of interpretability trade-offs when using PCA.
+- Validate feature selection and engineering with cross-validation, not just training performance. 
+
+---
+End of common_mistakes.txt
