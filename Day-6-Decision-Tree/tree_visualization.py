@@ -61,7 +61,7 @@ def visualize_tree_structure():
 
 def visualize_decision_boundary_2d():
     """
-    Visualize decision boundary for a 2D dataset.
+    Visualize decision boundary for  2D dataset.
     Shows how the tree partitions the feature space.
     """
     print("\n" + "="*60)
