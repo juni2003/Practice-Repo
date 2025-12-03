@@ -4,7 +4,7 @@ Day 6 — Decision Tree Basics
 
 This file introduces sklearn's DecisionTreeClassifier with simple examples.  
 Covers:
-- Creating and training a decision tree
+- Creating and training decision tree
 - Making predictions
 - Understanding key hyperparameters
 - Comparing different splitting criteria (gini vs entropy)
@@ -91,7 +91,7 @@ def hyperparameter_exploration():
     Explore key hyperparameters:
     - max_depth: Maximum depth of the tree
     - min_samples_split: Minimum samples required to split a node
-    - min_samples_leaf: Minimum samples required in a leaf node
+    - min_samples_leaf: Minimum samples required in  leaf node
     """
     print("\n" + "="*60)
     print("Hyperparameter Exploration")
