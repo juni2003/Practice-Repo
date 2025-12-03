@@ -51,11 +51,11 @@ def calculate_entropy(labels):
 
 def calculate_information_gain(parent_labels, left_labels, right_labels):
     """
-    Calculate information gain from a split.
+    Calculate the information gain from a split.
     
     Information Gain = Entropy(parent) - Weighted Average Entropy(children)
     
-    Higher information gain = better split
+    Higher info gain = better split
     
     Args:
         parent_labels: Labels before split
