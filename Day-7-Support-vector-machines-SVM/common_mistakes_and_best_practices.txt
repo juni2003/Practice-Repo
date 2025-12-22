@@ -1,0 +1,50 @@
+COMMON MISTAKES & BEST PRACTICES — SVM
+
+1) Not Scaling Features
+- SVM is distance-based; unscaled features distort distances.
+- Best practice: StandardScaler before SVM (fit on train, transform train/test).
+
+2) Wrong Kernel Choice
+- Start with RBF for non-linear problems; try linear for high-dimensional sparse data (e.g., text).
+- Polynomial requires careful degree tuning; sigmoid rarely preferred.
+
+3) Poor Hyperparameter Tuning
+- C too large → overfitting; too small → underfitting.
+- gamma too large (RBF) → very wiggly boundaries; too small → overly smooth.
+- Use GridSearchCV or RandomizedSearchCV with CV.
+
+4) Ignoring Class Imbalance
+- With imbalanced labels, SVM can bias toward majority.
+- Use class_weight='balanced' or perform resampling.
+
+5) Using Probability Outputs without Calibration
+- SVC with probability=True uses Platt scaling; may require calibration.
+- Consider CalibratedClassifierCV if precise probabilities are needed.
+
+6) Very Large Datasets
+- SVMs (especially with non-linear kernels) can be slow.
+- Consider LinearSVC or approximate methods for large-scale problems.
+- Tree ensembles (e.g., XGBoost) may be more scalable.
+
+7) Data Leakage in Scaling
+- Do not fit scaler on full dataset.
+- Fit on training set; transform training and test sets separately.
+
+8) Misinterpreting Support Vectors
+- Support vectors are critical points near the boundary; not necessarily “important features.”
+- Feature importance with SVM: use LinearSVC coefficients or permutation importance.
+
+9) Overfitting Diagnostics
+- Check learning curves; large train/val gap indicates overfitting.
+- Increase regularization (reduce C), simplify kernel (lower gamma/degree), gather more data.
+
+10) Multi-class Strategy Confusion
+- OvR is faster and common in SVC; OvO trains many pairwise models.
+- In scikit-learn, decision_function_shape controls strategy reporting.
+
+BEST PRACTICES SUMMARY
+- Scale features
+- Start with RBF kernel, gamma='scale', C=1.0
+- Tune with CV
+- Address class imbalance
+- Use pipelines to avoid leakage
