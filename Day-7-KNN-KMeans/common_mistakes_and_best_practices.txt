@@ -1,0 +1,72 @@
+COMMON MISTAKES & BEST PRACTICES — KNN and K-Means
+
+KNN (Classification/Regression)
+===============================
+Mistakes:
+1) No Feature Scaling
+   - Distance-based; unscaled features dominate (e.g., income vs age).
+   - Fix: Standardize or normalize features (fit on train only).
+
+2) Wrong k (n_neighbors)
+   - k too small: overfits (noisy boundaries). k too large: underfits (oversmoothing).
+   - Fix: Use CV to select k (try odd values for binary classes).
+
+3) Ignoring Class Imbalance
+   - Majority class can dominate voting.
+   - Fix: Use weights="distance", balance dataset, or class-aware metrics.
+
+4) Metric Mismatch
+   - Using Euclidean where Manhattan or cosine fits better (e.g., sparse/high-dimensional data).
+   - Fix: Benchmark metrics; try p=1 (L1) or cosine (sklearn supports cosine with brute force).
+
+5) Curse of Dimensionality
+   - In high dimensions, distances become less informative; neighbors look equally distant.
+   - Fix: Dimensionality reduction (PCA), feature selection, or choose a different model.
+
+6) Performance Assumptions
+   - Assuming trees (kd_tree/ball_tree) will always be faster.
+   - Fix: Benchmark 'brute' vs trees; for high dim, brute can be faster.
+
+Best Practices:
+- Scale features; consider pipelines (scaler + knn).
+- Use GridSearchCV for k, weights, p (metric).
+- Evaluate with appropriate metrics (F1, ROC-AUC for imbalance).
+- Cache or precompute neighbors if repeatedly querying (sklearn: n_jobs, algorithm choice).
+
+K-Means (Clustering)
+====================
+Mistakes:
+1) Not Scaling Features
+   - Features with large scales dominate cluster formation.
+   - Fix: Standardize/normalize.
+
+2) Wrong k
+   - Arbitrary k leads to poor clusters.
+   - Fix: Use elbow and silhouette; domain knowledge.
+
+3) Assuming Spherical, Equal-Size Clusters
+   - K-Means struggles with elongated or varying-density clusters.
+   - Fix: Try K-Medoids, Gaussian Mixtures, DBSCAN, Spectral Clustering.
+
+4) Bad Initialization
+   - Random init can converge to poor local minima.
+   - Fix: Use k-means++ (default in sklearn), increase n_init.
+
+5) Outliers Skewing Centroids
+   - Centroids are mean-based; outliers distort centers.
+   - Fix: Remove/clip outliers, use robust scaling, or consider K-Medoids.
+
+6) Using K-Means for Categorical Data
+   - Euclidean distance on categories is not meaningful.
+   - Fix: Use k-modes/k-prototypes or encode meaningfully (but be careful).
+
+7) Interpreting Inertia Absolutely
+   - Inertia always decreases with k; not directly comparable across datasets.
+   - Fix: Compare relative drops (elbow) and use silhouette.
+
+Best Practices:
+- Always scale features.
+- Use k-means++ and n_init >= 10 (sklearn default n_init can vary by version).
+- Validate k with silhouette and elbow; sanity-check with domain knowledge.
+- For large datasets, use MiniBatchKMeans.
+- Visualize clusters and inspect cluster centers; align with business meaning.
