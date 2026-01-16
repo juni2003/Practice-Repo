@@ -1,0 +1,41 @@
+COMMON MISTAKES & BEST PRACTICES — PCA
+
+Mistakes:
+1) No Scaling Before PCA
+   - Mixed units/variances dominate PCs (e.g., mm vs kg).
+   - Fix: Standardize (mean=0, std=1) before PCA.
+
+2) Fitting PCA on Full Dataset (Data Leakage)
+   - Using test data to compute PCs inflates performance.
+   - Fix: Fit PCA on training only, transform train and test with same PCA.
+
+3) Assuming PCA Helps All Models
+   - Tree-based models don’t need decorrelation; PCA may remove signal.
+   - Fix: Benchmark with/without PCA; prefer PCA for linear/distance-based models.
+
+4) Overusing Whitening
+   - Whitening can remove scale that’s useful for some models.
+   - Fix: Use whiten=True only when justified; compare performance.
+
+5) Interpreting PCs as Original Features
+   - PCs are linear combos; loadings need careful interpretation.
+   - Fix: Use biplots, loading magnitudes, and domain knowledge.
+
+6) Choosing k from Inertia Alone
+   - “Elbow” can be ambiguous; ignore downstream task performance.
+   - Fix: Combine EVR with validation metrics or reconstruction error.
+
+7) Ignoring Outliers
+   - Outliers can skew PCs dramatically.
+   - Fix: Robust scaling, trimming, or robust PCA variants.
+
+8) Using PCA for Categorical Data
+   - Euclidean distance on encoded categories is often meaningless.
+   - Fix: Use appropriate encoding or consider MCA for categorical variables.
+
+Best Practices:
+- Standardize features; optionally center-only for already comparable scales.
+- Choose k via cumulative EVR (e.g., 95%) plus validation performance.
+- Visualize: scree, cumulative EVR, 2D/3D projections, biplot for interpretability.
+- For large data: IncrementalPCA or randomized SVD; consider batch size carefully.
+- Always pipeline: (scaler) → (PCA) → (model) to avoid leakage.
