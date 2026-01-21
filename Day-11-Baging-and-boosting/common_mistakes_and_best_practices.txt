@@ -1,0 +1,75 @@
+COMMON MISTAKES & BEST PRACTICES — Bagging & Boosting
+
+Bagging / Random Forests
+========================
+Mistakes:
+1) No OOB Validation
+   - Missing an easy generalization estimate.
+   - Fix: Use oob_score=True when bootstrap=True.
+
+2) Weak Base Learners for Bagging
+   - Using high-bias learners (e.g., shallow trees) reduces gains from averaging.
+   - Fix: Use high-variance learners (deep/unpruned trees) for bagging.
+
+3) Ignoring max_features in RF
+   - No feature subsampling reduces decorrelation of trees.
+   - Fix: Use sqrt (classification) or log2 to improve diversity.
+
+4) Overfitting with Too Many Features/Depth
+   - Very deep trees can memorize noise (RF mitigates but can still overfit small datasets).
+   - Fix: Tune max_depth/min_samples_leaf; monitor OOB/test metrics.
+
+Best Practices:
+- Start with RandomForest before tuning complex models.
+- Use class_weight='balanced' for imbalance.
+- Inspect feature importances; consider permutation importance for reliability.
+
+AdaBoost
+========
+Mistakes:
+1) High Learning Rate / Too Many Estimators
+   - Overfits quickly, especially with noisy labels/outliers.
+   - Fix: Lower learning_rate (e.g., 0.1–0.5) and tune n_estimators.
+
+2) Deep Base Trees
+   - Deep trees reduce the “weak learner” assumption; can overfit.
+   - Fix: Use stumps (max_depth=1) or shallow trees.
+
+3) Sensitive to Outliers
+   - Reweighting can focus too much on mislabeled points.
+   - Fix: Clean data or use robust models; cap estimators.
+
+Best Practices:
+- Use decision stumps as baseline; grid search learning_rate × n_estimators.
+- Monitor validation curves; early stop when performance plateaus.
+
+Gradient Boosting
+=================
+Mistakes:
+1) Large Learning Rate without Regularization
+   - Rapid overfitting.
+   - Fix: Small learning_rate (0.03–0.1) with larger n_estimators.
+
+2) Trees Too Deep
+   - Learners fit interactions too aggressively.
+   - Fix: max_depth 2–5 or max_leaf_nodes; use subsampling.
+
+3) No Subsampling
+   - Deterministic fits can overfit and be slow.
+   - Fix: Use subsample (0.5–0.9) and column subsampling in advanced libraries.
+
+4) Ignoring Validation Curves
+   - Not tracking train vs validation loss.
+   - Fix: Plot loss vs n_estimators; use early stopping if available.
+
+Best Practices:
+- Prefer HistGradientBoosting* in sklearn for larger/tabular datasets.
+- Combine small learning_rate with more estimators; tune max_depth/min_child_samples.
+- Use monotonic constraints (if available in other libs) when needed for interpretability.
+
+General
+=======
+- Always compare to a single tree baseline.
+- Set random_state for reproducibility.
+- Evaluate with appropriate metrics (ROC-AUC, F1 for imbalance).
+- Use pipelines and cross-validation to avoid leakage.
