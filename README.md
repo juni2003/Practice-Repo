@@ -28,6 +28,15 @@ If you're browsing this as a visitor, feel free to explore each day’s folder �
   - Linear vs kernel SVM, margin, hyperparameters (C, gamma), SVR, best practices.
 - Day-8-KNN-KMeans
   - KNN classification/regression; K-Means clustering; elbow & silhouette methods; scaling and distance metrics.
+-  Day 9 — Naive Bayes & Bayesian Thinking
+  - conditional independence, likelihoods, priors, posteriors; Gaussian, Multinomial, Bernoulli; Text classification pipeline (TF-IDF + NB); Handling class imbalance and calibration
+
+- Day 10 — Dimensionality Reduction (PCA and Friends)
+  - variance, eigenvectors, scree plot, Whitening, explained variance, reconstruction error; Incremental PCA; Visualization
+
+- Day 11 — Bagging & Boosting (Foundations)
+  - Bagging vs pasting; bias-variance tradeoff; AdaBoost intuition and exponential loss; Gradient Boosting; Model comparison against single trees
+
 
 Tip: Each day typically contains 5–8 files with commented code, visualizations where helpful, and a README for quick understanding.
 
@@ -63,27 +72,9 @@ Day-N-Topic/
 
 ---
 
-## 🚀 Next 10 Days (Planned Roadmap)
+## 🚀 Next 7 Days (Planned Roadmap)
 
 These are the next topics I’ll study, each with subtopics and a mini-project or visualization.
-
-### Day 9 — Naive Bayes & Bayesian Thinking
-- Theory: conditional independence, likelihoods, priors, posteriors
-- Variants: Gaussian, Multinomial, Bernoulli
-- Text classification pipeline (TF-IDF + NB)
-- Handling class imbalance and calibration
-
-### Day 10 — Dimensionality Reduction (PCA and Friends)
-- PCA intuition: variance, eigenvectors, scree plot
-- Whitening, explained variance, reconstruction error
-- Incremental PCA; when not to use PCA
-- Visualization: 2D/3D projection of real dataset
-
-### Day 11 — Bagging & Boosting (Foundations)
-- Bagging vs pasting; bias-variance tradeoff
-- AdaBoost intuition and exponential loss
-- Gradient Boosting: weak learners and residuals
-- Model comparison against single trees
 
 ### Day 12 — XGBoost, LightGBM, CatBoost
 - Why gradient-boosted trees win often
