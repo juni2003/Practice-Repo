@@ -28,7 +28,7 @@ If you're browsing this as a visitor, feel free to explore each day’s folder �
   - Linear vs kernel SVM, margin, hyperparameters (C, gamma), SVR, best practices.
 - Day-8-KNN-KMeans
   - KNN classification/regression; K-Means clustering; elbow & silhouette methods; scaling and distance metrics.
--  Day 9 — Naive Bayes & Bayesian Thinking
+- Day 9 — Naive Bayes & Bayesian Thinking
   - conditional independence, likelihoods, priors, posteriors; Gaussian, Multinomial, Bernoulli; Text classification pipeline (TF-IDF + NB); Handling class imbalance and calibration
 
 - Day 10 — Dimensionality Reduction (PCA and Friends)
