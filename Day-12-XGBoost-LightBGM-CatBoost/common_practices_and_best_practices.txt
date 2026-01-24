@@ -1,0 +1,41 @@
+COMMON MISTAKES & BEST PRACTICES — XGBoost, LightGBM, CatBoost
+
+Mistakes:
+1) No Validation Set / Early Stopping
+   - Overfits with too many estimators.
+   - Fix: Use eval_set and early_stopping_rounds; monitor validation metric.
+
+2) Learning Rate Too High
+   - Fast overfitting and unstable training.
+   - Fix: Use small learning_rate (0.02–0.1) and more estimators.
+
+3) Depth / Leaves Too Large
+   - Trees memorize noise; huge variance.
+   - Fix: Limit max_depth (XGB), num_leaves (LGB), depth (CAT); tune min_child_*.
+
+4) Ignoring Subsampling
+   - No stochasticity, slower and overfits.
+   - Fix: Use subsample/bagging_fraction and colsample_bytree/feature_fraction (0.7–0.9).
+
+5) Poor Handling of Categorical Features
+   - One-hot with high cardinality damages performance.
+   - Fix: Prefer CatBoost; for LGB/XGB consider target encoding carefully (with leakage guards).
+
+6) Mixing Train/Test in Preprocessing (Leakage)
+   - Computing encodings or scaling on full data.
+   - Fix: Fit encoders/scalers on training split only.
+
+7) Blindly Trusting Built-in Importances
+   - Gain/weight importance can be biased.
+   - Fix: Validate with permutation importance and SHAP.
+
+8) Wrong Objective/Metric
+   - Using default objective for imbalanced classification.
+   - Fix: Use appropriate objective and eval_metric; consider scale_pos_weight (XGB) or class weights.
+
+Best Practices:
+- Start with conservative defaults; enable early stopping.
+- Tune depth/leaves, learning_rate, subsample/feature_fraction, l1/l2 regularization.
+- Use SHAP for interpretation; check stability of feature importance.
+- For large datasets, use hist-based algorithms and parallelism; set n_jobs.
+- Document best_iteration and use it for prediction (num_iteration/iteration_range).
