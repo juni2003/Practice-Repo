@@ -38,6 +38,11 @@ If you're browsing this as a visitor, feel free to explore each day’s folder �
   - Bagging vs pasting; bias-variance tradeoff; AdaBoost intuition and exponential loss; Gradient Boosting; Model comparison against single trees
 
 
+### Day 12 — XGBoost, LightGBM, CatBoost
+- Why gradient-boosted trees win often
+- Handling categorical features (CatBoost)
+- Early stopping, regularization, feature importance
+- Hyperparameter tuning templates
 Tip: Each day typically contains 5–8 files with commented code, visualizations where helpful, and a README for quick understanding.
 
 ---
@@ -72,15 +77,10 @@ Day-N-Topic/
 
 ---
 
-## 🚀 Next 7 Days (Planned Roadmap)
+## 🚀 Next 6 Days (Planned Roadmap)
 
 These are the next topics I’ll study, each with subtopics and a mini-project or visualization.
 
-### Day 12 — XGBoost, LightGBM, CatBoost
-- Why gradient-boosted trees win often
-- Handling categorical features (CatBoost)
-- Early stopping, regularization, feature importance
-- Hyperparameter tuning templates
 
 ### Day 13 — Hyperparameter Tuning & Model Selection
 - GridSearchCV, RandomizedSearchCV
