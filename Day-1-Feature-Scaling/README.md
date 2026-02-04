@@ -3,7 +3,6 @@
 ## Importance of Feature Scaling in Machine Learning
 
 Feature scaling is a technique used to standardize the range of independent variables or features of data. In machine learning, it is crucial because:
-
 - **Improved Convergence Speed**: Algorithms like gradient descent converge faster when features are on a similar scale.
 - **Better Model Performance**: Many algorithms, such as k-nearest neighbors (KNN) and support vector machines (SVM), perform better when features are scaled.
 - **Avoiding Bias**: When features have different ranges, the model may become biased towards features with larger ranges.
