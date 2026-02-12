@@ -38,7 +38,13 @@ If you're browsing this as a visitor, feel free to explore each day’s folder �
   - Bagging vs pasting; bias-variance tradeoff; AdaBoost intuition and exponential loss; Gradient Boosting; Model comparison against single trees
 
 - Day 12 — XGBoost, LightGBM, CatBoost
-- Why gradient-boosted trees win often; Handling categorical features (CatBoost), Early stopping, regularization, feature importance, Hyperparameter tuning templates
+  - Why gradient-boosted trees win often; Handling categorical features (CatBoost), Early stopping, regularization, feature importance, Hyperparameter tuning templates
+
+- Day 13 — Hyperparameter Tuning & Model Selection
+  - GridSearchCV, RandomizedSearchCV; Bayesian optimization with Optuna; Cross-validation strategies (StratifiedKFold, GroupKFold); Reproducibility and search spaces
+
+- Day 14 — Model Evaluation & Diagnostics
+  - Bias-variance, learning curves, validation curves; Metrics by task (classification, regression, ranking); Error analysis workflow; calibration; confidence intervals
 
 Tip: Each day typically contains 5–8 files with commented code, visualizations where helpful, and a README for quick understanding.
 
@@ -79,17 +85,7 @@ Day-N-Topic/
 These are the next topics I’ll study, each with subtopics and a mini-project or visualization.
 
 
-### Day 13 — Hyperparameter Tuning & Model Selection
-- GridSearchCV, RandomizedSearchCV
-- Bayesian optimization with Optuna
-- Cross-validation strategies (StratifiedKFold, GroupKFold)
-- Reproducibility and search spaces
 
-### Day 14 — Model Evaluation & Diagnostics
-- Bias-variance, learning curves, validation curves
-- Metrics by task (classification, regression, ranking)
-- Error analysis workflow; calibration; confidence intervals
-- Practical debugging checklist
 
 ### Day 15 — Feature Engineering & Selection
 - ColumnTransformer pipelines
